@@ -91,6 +91,13 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
             return      
 
         # TODO: check that sender is in list of valid senders?
+        list_identities_cmd = "%s -u %s listIdentities" % (path, sender)
+        rc, osstdout = self.run_command(list_identities_cmd)
+        if rc != 0:
+            self._logger.error("The sender ('%s') is not registered!" % sender)
+            self._logger.error("Command: '%s'" % list_identities_cmd)
+            self._logger.error("Command output: '%s'" % osstdout)
+            return               
 
         # ./signal-cli -u +4915151111111 send -m "My first message from the CLI" +4915152222222
         the_command = "%s -u %s send -m \"%s\" %s" % (path, sender, message, recipient)
@@ -103,7 +110,8 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
             self._logger.exception("Signal notification error: %s" % (str(e)))
         else:
             if rc != 0:
-                self._logger.error("Command ('%s') exited with a non-zero exit code." % the_command)
+                self._logger.error("Command exited with a non-zero exit code!")
+                self._logger.error("Command: '%s'" % the_command)
                 self._logger.error("Command output: '%s'" % osstdout)
                 return
             # report notification was sent
