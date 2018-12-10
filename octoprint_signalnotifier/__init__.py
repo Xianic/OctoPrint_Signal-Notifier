@@ -18,6 +18,11 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
             return True
         return False
 
+    def run_command(self, command_arg_list):
+        # TODO: take string arg and split with "parsed_cmd = shlex.split(cmd)"?       
+        proc = subprocess.Popen(command_arg_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        out, _err = proc.communicate()
+        return (proc.returncode, out.rstrip())
 
     #~~ SettingsPlugin
     def get_settings_defaults(self):
@@ -86,17 +91,19 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
 
         # ./signal-cli -u +4915151111111 send -m "My first message from the CLI" +4915152222222
         # the_command = "%s -u %s send -m \"%s\" %s 2>&1" % (path, sender, message, recipient)
-        the_args = [path, "-u", sender, "send -m", message, recipient]
+        the_args = [path, "-u", sender, "send", "-m", message, recipient]
         self._logger.debug("Command plugin will run is: '%s'" % ' '.join(the_args))
         osstdout = ""
         try:
-            # call signal-cli
-            osstdout = subprocess.check_call(the_args, stderr=subprocess.STDOUT)
+            rc, osstdout = self.run_command(the_args)
         # TODO: catch subprocess.CalledProcessError vs generic error?
         except Exception as e:
             # report problem sending message
             self._logger.exception("Signal notification error: %s: %s" % (str(e), osstdout))
         else:
+            if rc != 0:
+                self._logger.error("Command exited non-zero!: %s" % osstdout
+                return
             # report notification was sent
             self._logger.info("Print notification sent to %s" % (self._settings.get(['recipient'])))
 
