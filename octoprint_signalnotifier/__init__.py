@@ -72,7 +72,7 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
         recipient = self._settings.get(["recipient"])
         message = self._settings.get(["message_format", "body"]).format(**tags)
 
-        # check args and raise if not configured
+        # check that path is a valid executable
         if not self.is_exe(path):
             self._logger.error("The path to signal-cli ('%s') doesn't point at an executable!" % path)
             return
