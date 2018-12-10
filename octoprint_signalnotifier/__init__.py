@@ -22,7 +22,6 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
         return False
 
     def run_command(self, cmd):
-        # TODO: take string arg and split with "parsed_cmd = shlex.split(cmd)"?  
         parsed_cmd = shlex.split(cmd)     
         proc = subprocess.Popen(parsed_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         out, _err = proc.communicate()
