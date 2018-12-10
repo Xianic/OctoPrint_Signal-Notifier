@@ -1,8 +1,10 @@
 # coding=utf-8
 
 from __future__ import absolute_import
+import datetime
 import getpass
 import octoprint.plugin
+import octoprint.util
 import os
 import socket
 import subprocess
@@ -58,8 +60,7 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
         
         filename = os.path.basename(payload["file"])
 
-        import datetime
-        import octoprint.util
+
         elapsed_time = octoprint.util.get_formatted_timedelta(datetime.timedelta(seconds=payload["time"]))
 
         tags = {'filename': filename, 
