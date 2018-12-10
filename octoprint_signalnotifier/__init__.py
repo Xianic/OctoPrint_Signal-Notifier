@@ -12,6 +12,13 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
                                octoprint.plugin.AssetPlugin,
                                octoprint.plugin.TemplatePlugin):
 
+    ## Helpers    
+    def is_exe(self, fpath):
+        if os.path.isfile(fpath) and os.access(fpath, os.X_OK):
+            return True
+        return False
+
+
     #~~ SettingsPlugin
     def get_settings_defaults(self):
         return dict(
@@ -59,12 +66,18 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
         recipient = self._settings.get(["recipient"])
         message = self._settings.get(["message_format", "body"]).format(**tags)
 
+        # TODO: check args and throw errors if not configured
+        if not self.is_exe(path):
+            # raise(Exception())
+            raise Exception("The path to signal-cli ('%s') doesn't point at an executable!" % path)
+
         # ./signal-cli -u +4915151111111 send -m "My first message from the CLI" +4915152222222
         the_command = "%s -u %s send -m \"%s\" %s 2>&1" % (path, sender, message, recipient)
+        self._logger.debug("Command plugin will run is: '%s'" % the_command)
         osstdout = ""
         try:
             # call signal-cli
-            osstdout = subprocess.check_call(the_command)
+            osstdout = subprocess.check_call(the_command, stderr=subprocess.STDOUT)
         # TODO: catch subprocess.CalledProcessError vs generic error?
         except Exception as e:
             # report problem sending message
