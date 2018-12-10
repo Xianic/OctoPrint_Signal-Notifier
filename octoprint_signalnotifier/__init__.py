@@ -72,8 +72,16 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
             self._logger.error("The path to signal-cli ('%s') doesn't point at an executable!" % path)
             return
 
-        # TODO: check that sender is defined
-        # TODO: check that recipient is defined
+        # check that sender is defined
+        if sender.strip() == '':
+            self._logger.error("The sender ('%s') seems empty!" % sender)
+            return      
+
+        # check that recipient is defined
+        if recipient.strip() == '':
+            self._logger.error("The recipient ('%s') seems empty!" % recipient)
+            return      
+
         # TODO: check that sender is in list of valid senders?
 
         # ./signal-cli -u +4915151111111 send -m "My first message from the CLI" +4915152222222
