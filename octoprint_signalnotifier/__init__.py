@@ -64,7 +64,7 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
         osstdout = ""
         try:
             # call signal-cli
-            osstdout = subprocess.check_call(the_command, shell=True)
+            osstdout = subprocess.check_call(the_command)
         # TODO: catch subprocess.CalledProcessError vs generic error?
         except Exception as e:
             # report problem sending message
