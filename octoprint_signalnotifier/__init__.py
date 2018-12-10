@@ -102,7 +102,7 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
             self._logger.exception("Signal notification error: %s: %s" % (str(e), osstdout))
         else:
             if rc != 0:
-                self._logger.error("Command exited non-zero!: %s" % osstdout
+                self._logger.error("Command exited non-zero!: %s" % osstdout)
                 return
             # report notification was sent
             self._logger.info("Print notification sent to %s" % (self._settings.get(['recipient'])))
