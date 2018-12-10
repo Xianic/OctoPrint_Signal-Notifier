@@ -68,18 +68,22 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
 
         # check args and raise if not configured
         if not self.is_exe(path):
-            raise Exception("The path to signal-cli ('%s') doesn't point at an executable!" % path)
+            # raise Exception("The path to signal-cli ('%s') doesn't point at an executable!" % path)
+            self._logger.error("The path to signal-cli ('%s') doesn't point at an executable!" % path)
+            return
+
         # TODO: check that sender is defined
         # TODO: check that recipient is defined
         # TODO: check that sender is in list of valid senders?
 
         # ./signal-cli -u +4915151111111 send -m "My first message from the CLI" +4915152222222
-        the_command = "%s -u %s send -m \"%s\" %s 2>&1" % (path, sender, message, recipient)
-        self._logger.debug("Command plugin will run is: '%s'" % the_command)
+        # the_command = "%s -u %s send -m \"%s\" %s 2>&1" % (path, sender, message, recipient)
+        the_args = [path, "-u", sender, "send -m", message, recipient]
+        self._logger.debug("Command plugin will run is: '%s'" % ' '.join(the_args))
         osstdout = ""
         try:
             # call signal-cli
-            osstdout = subprocess.check_call(the_command, stderr=subprocess.STDOUT)
+            osstdout = subprocess.check_call(the_args, stderr=subprocess.STDOUT)
         # TODO: catch subprocess.CalledProcessError vs generic error?
         except Exception as e:
             # report problem sending message
