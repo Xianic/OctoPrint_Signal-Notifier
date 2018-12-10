@@ -90,7 +90,7 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
             self._logger.error("The recipient ('%s') seems empty!" % recipient)
             return      
 
-        # TODO: check that sender is in list of valid senders?
+        # check that sender is in list of valid senders?
         list_identities_cmd = "%s -u %s listIdentities" % (path, sender)
         rc, osstdout = self.run_command(list_identities_cmd)
         if rc != 0:
