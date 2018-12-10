@@ -62,7 +62,6 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
         
         filename = os.path.basename(payload["file"])
 
-
         elapsed_time = octoprint.util.get_formatted_timedelta(datetime.timedelta(seconds=payload["time"]))
 
         tags = {'filename': filename, 
