@@ -6,6 +6,7 @@ import getpass
 import octoprint.plugin
 import octoprint.util
 import os
+import shlex
 import socket
 import subprocess
 
@@ -20,9 +21,10 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
             return True
         return False
 
-    def run_command(self, command_arg_list):
-        # TODO: take string arg and split with "parsed_cmd = shlex.split(cmd)"?       
-        proc = subprocess.Popen(command_arg_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    def run_command(self, cmd):
+        # TODO: take string arg and split with "parsed_cmd = shlex.split(cmd)"?  
+        parsed_cmd = shlex.split(cmd)     
+        proc = subprocess.Popen(parsed_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         out, _err = proc.communicate()
         return (proc.returncode, out.rstrip())
 
@@ -91,18 +93,18 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
         # TODO: check that sender is in list of valid senders?
 
         # ./signal-cli -u +4915151111111 send -m "My first message from the CLI" +4915152222222
-        # the_command = "%s -u %s send -m \"%s\" %s 2>&1" % (path, sender, message, recipient)
-        the_args = [path, "-u", sender, "send", "-m", message, recipient]
-        self._logger.debug("Command plugin will run is: '%s'" % ' '.join(the_args))
+        the_command = "%s -u %s send -m \"%s\" %s" % (path, sender, message, recipient)
+        self._logger.debug("Command plugin will run is: '%s'" % the_command)
         try:
-            rc, osstdout = self.run_command(the_args)
+            rc, osstdout = self.run_command(the_command)
         # TODO: catch subprocess.CalledProcessError vs generic error?
         except Exception as e:
             # report problem sending message
             self._logger.exception("Signal notification error: %s" % (str(e)))
         else:
             if rc != 0:
-                self._logger.error("Command exited non-zero!: '%s'" % osstdout)
+                self._logger.error("Command ('%s') exited with a non-zero exit code." % the_command)
+                self._logger.error("Command output: '%s'" % osstdout)
                 return
             # report notification was sent
             self._logger.info("Print notification sent to %s" % (self._settings.get(['recipient'])))
