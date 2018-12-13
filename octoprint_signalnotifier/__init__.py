@@ -43,9 +43,6 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
                 self._logger.error("Command: '%s'" % the_command)
                 self._logger.error("Command output: '%s'" % osstdout)
                 return
-            # report notification was sent
-            # TODO: mention type of message (e.g. done, paused)?
-            self._logger.info("Notification sent to %s" % (self._settings.get(['recipient'])))
 
     def configuration_ok(self):
         # load config data
@@ -92,7 +89,7 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
                 body="OctoPrint@{host}: {filename}: Job complete after {elapsed_time}." 
             ),
             paused_message_format=dict(
-                body="OctoPrint@{host}: {filename}: Job paused after {elapsed_time}." 
+                body="OctoPrint@{host}: {filename}: Job paused!" 
             )
         )
 
@@ -137,18 +134,26 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
         recipient = self._settings.get(["recipient"])
 
         filename = os.path.basename(payload["file"])
-        elapsed_time = octoprint.util.get_formatted_timedelta(datetime.timedelta(seconds=payload["time"]))
-        tags = {'filename': filename, 
-                'elapsed_time': elapsed_time,
-                'host': socket.gethostname(),
-                'user': getpass.getuser()}
-        
+
         if type == 'done':
+            elapsed_time = octoprint.util.get_formatted_timedelta(datetime.timedelta(seconds=payload["time"]))
+            tags = {'filename': filename, 
+                    'elapsed_time': elapsed_time,
+                    'host': socket.gethostname(),
+                    'user': getpass.getuser()}
             message = self._settings.get(["message_format", "body"]).format(**tags)
-        elif type == 'paused'
-            message = self._settings.get(["message_format_paused", "body"]).format(**tags)
+        elif type == 'paused':
+            tags = {'filename': filename, 
+                    'host': socket.gethostname(),
+                    'user': getpass.getuser()}
+            message = self._settings.get(["paused_message_format", "body"]).format(**tags)
 
         self.send_message(path, sender, message, recipient)
+
+        # report notification was sent
+        # TODO: mention type of message (e.g. done, paused)?
+        self._logger.info("Notification (%s) sent to %s" % (type, self._settings.get(['recipient'])))
+
 
     def handle_paused(self, event, payload):
         if not self._settings.get(['enabled_pause']):
