@@ -27,7 +27,7 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
         out, _err = proc.communicate()
         return (proc.returncode, out.rstrip())
 
-    def send_message(self, path, sender, message, recipient)
+    def send_message(self, path, sender, message, recipient):
         # ./signal-cli -u +4915151111111 send -m "My first message from the CLI" +4915152222222
         the_command = "%s -u %s send -m \"%s\" %s" % (path, sender, message, recipient)
         self._logger.debug("Command plugin will run is: '%s'" % the_command)
@@ -47,76 +47,12 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
             # TODO: mention type of message (e.g. done, paused)?
             self._logger.info("Notification sent to %s" % (self._settings.get(['recipient'])))
 
-    #~~ SettingsPlugin
-    def get_settings_defaults(self):
-        return dict(
-            enabled=False,
-            enabled_done=True,
-            enabled_pause=True,
-            path="/usr/local/bin/signal-cli",
-            sender="",
-            recipient="",
-            message_format=dict(
-                body="OctoPrint@{host}: Job complete: {filename} done printing after {elapsed_time}." 
-            )
-        )
-
-    def get_settings_restricted_paths(self):
-        return dict(admin=[["path"], ["sender"], ["recipient"]],
-                    user=[["message_format", "body"]],
-                    never=[])        
-
-    def get_settings_version(self):
-        return 1
-
-    #~~ TemplatePlugin
-    def get_template_configs(self):
-        return [dict(type="settings", name="Signal Notifier", custom_bindings=False)]
-
-    #~~ EventPlugin
-    def on_event(self, event, payload):
-        self._logger.info("TESTING: event is %s: %s" % (event, payload))
-
-        if not self._settings.get(['enabled']):
-            return
-
-        if not configuration_ok:
-            return
-
-        if event == "PrintDone":
-            self.handle_done(event, payload)
-        else if event == 'PrintPaused'
-            self.handle_paused(event, payload)
-        else
-            return
-
-    def handle_paused(self, event, payload)
-        if not self._settings.get(['enabled_pause']):
-            return
-
-        # TODO: write this
-        self._logger.error("handle_paused hasn't been written yet!!!")
-
-    def handle_done(self, event, payload)
-        if not self._settings.get(['enabled_done']):
-            return
-
-        filename = os.path.basename(payload["file"])
-
-        elapsed_time = octoprint.util.get_formatted_timedelta(datetime.timedelta(seconds=payload["time"]))
-
-        tags = {'filename': filename, 
-                'elapsed_time': elapsed_time,
-                'host': socket.gethostname(),
-                'user': getpass.getuser()}
+    def configuration_ok(self):
+        # load config data
         path = self._settings.get(["path"])
         sender = self._settings.get(["sender"])
         recipient = self._settings.get(["recipient"])
-        message = self._settings.get(["message_format", "body"]).format(**tags)
 
-        self.send_message(path, sender, message, recipient)
-
-    def configuration_ok()
         # check that path is a valid executable
         if not self.is_exe(path):
             self._logger.error("The path to signal-cli ('%s') doesn't point at an executable!" % path)
@@ -141,6 +77,88 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
             self._logger.error("Command output: '%s'" % osstdout)
             return False              
         return True
+
+    #~~ SettingsPlugin
+    def get_settings_defaults(self):
+        return dict(
+            enabled=False,
+            enabled_done=True,
+            enabled_pause=True,
+            path="/usr/local/bin/signal-cli",
+            sender="",
+            recipient="",
+            # TODO: refactor settings
+            message_format=dict(
+                body="OctoPrint@{host}: {filename}: Job complete after {elapsed_time}." 
+            ),
+            paused_message_format=dict(
+                body="OctoPrint@{host}: {filename}: Job paused after {elapsed_time}." 
+            )
+        )
+
+    def get_settings_restricted_paths(self):
+        return dict(admin=[["path"], ["sender"], ["recipient"]],
+                    user=[["message_format", "body"]],
+                    never=[])        
+
+    def get_settings_version(self):
+        return 1
+
+    def on_settings_migrate(target, current):
+        pass
+
+    #~~ TemplatePlugin
+    def get_template_configs(self):
+        return [dict(type="settings", name="Signal Notifier", custom_bindings=False)]
+
+    #~~ EventPlugin
+    def on_event(self, event, payload):
+        self._logger.info("TESTING: event is %s: %s" % (event, payload))
+
+        if not self._settings.get(['enabled']):
+            return
+
+        if not self.configuration_ok():
+            return
+
+        if event == "PrintDone":
+            self.handle_done(event, payload)
+        elif event == 'PrintPaused':
+            self.handle_paused(event, payload)
+        else:
+            return
+
+    def handle_generic(self, event, payload, type):
+        if not self._settings.get(['enabled_done']):
+            return
+
+        path = self._settings.get(["path"])
+        sender = self._settings.get(["sender"])
+        recipient = self._settings.get(["recipient"])
+
+        filename = os.path.basename(payload["file"])
+        elapsed_time = octoprint.util.get_formatted_timedelta(datetime.timedelta(seconds=payload["time"]))
+        tags = {'filename': filename, 
+                'elapsed_time': elapsed_time,
+                'host': socket.gethostname(),
+                'user': getpass.getuser()}
+        
+        if type == 'done':
+            message = self._settings.get(["message_format", "body"]).format(**tags)
+        elif type == 'paused'
+            message = self._settings.get(["message_format_paused", "body"]).format(**tags)
+
+        self.send_message(path, sender, message, recipient)
+
+    def handle_paused(self, event, payload):
+        if not self._settings.get(['enabled_pause']):
+            return
+        self.handle_generic(event, payload, 'paused')
+
+    def handle_done(self, event, payload):
+        if not self._settings.get(['enabled_done']):
+            return
+        self.handle_generic(event, payload, 'done')
 
     ##~~ Softwareupdate hook
     def get_update_information(self):
