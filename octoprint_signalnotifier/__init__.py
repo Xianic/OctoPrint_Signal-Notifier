@@ -31,7 +31,9 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
     def get_settings_defaults(self):
         return dict(
             enabled=False,
-            path="signal-cli",
+            enabled_done=True,
+            enabled_pause=True,
+            path="/usr/local/bin/signal-cli",
             sender="",
             recipient="",
             message_format=dict(
@@ -53,12 +55,30 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
 
     #~~ EventPlugin
     def on_event(self, event, payload):
-        if event != "PrintDone":
-            return
-        
+        self._logger.info("TESTING: event is %s: %s" % (event, payload))
+
         if not self._settings.get(['enabled']):
             return
+
+        if event == "PrintDone":
+            self.handle_done(event, payload)
+        else if event == 'PrintPaused'
+            self.handle_paused(event, payload)
+        else
+            return
+
+    def handle_paused(self, event, payload)
+        if not self._settings.get(['enabled_pause']):
+            return
+
+        # TODO: write this
+        pass
+
         
+    def handle_done(self, event, payload)
+        if not self._settings.get(['enabled_done']):
+            return
+
         filename = os.path.basename(payload["file"])
 
         elapsed_time = octoprint.util.get_formatted_timedelta(datetime.timedelta(seconds=payload["time"]))
@@ -112,7 +132,7 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
                 self._logger.error("Command output: '%s'" % osstdout)
                 return
             # report notification was sent
-            self._logger.info("Print notification sent to %s" % (self._settings.get(['recipient'])))
+            self._logger.info("Notification sent to %s" % (self._settings.get(['recipient'])))
 
     ##~~ Softwareupdate hook
     def get_update_information(self):
