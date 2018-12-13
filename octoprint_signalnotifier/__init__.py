@@ -75,6 +75,41 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
             return False              
         return True
 
+    def handle_generic(self, event, payload, type):
+        path = self._settings.get(["path"])
+        sender = self._settings.get(["sender"])
+        recipient = self._settings.get(["recipient"])
+
+        filename = os.path.basename(payload["file"])
+
+        if type == 'done':
+            elapsed_time = octoprint.util.get_formatted_timedelta(datetime.timedelta(seconds=payload["time"]))
+            tags = {'filename': filename, 
+                    'elapsed_time': elapsed_time,
+                    'host': socket.gethostname(),
+                    'user': getpass.getuser()}
+            message = self._settings.get(["message_format", "body"]).format(**tags)
+        elif type == 'paused':
+            tags = {'filename': filename, 
+                    'host': socket.gethostname(),
+                    'user': getpass.getuser()}
+            message = self._settings.get(["paused_message_format", "body"]).format(**tags)
+
+        self.send_message(path, sender, message, recipient)
+
+        # report notification was sent
+        self._logger.info("Notification (%s) sent to %s." % (type, self._settings.get(['recipient'])))
+
+    def handle_paused(self, event, payload):
+        if not self._settings.get(['enabled_pause']):
+            return
+        self.handle_generic(event, payload, 'paused')
+
+    def handle_done(self, event, payload):
+        if not self._settings.get(['enabled_done']):
+            return
+        self.handle_generic(event, payload, 'done')
+
     #~~ SettingsPlugin
     def get_settings_defaults(self):
         return dict(
@@ -113,8 +148,8 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
     def on_event(self, event, payload):
         # self._logger.info("TESTING: event is %s: %s" % (event, payload))
 
-        if not self._settings.get(['enabled']):
-            return
+        # if not self._settings.get(['enabled']):
+        #     return
 
         if not self.configuration_ok():
             return
@@ -125,41 +160,6 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
             self.handle_paused(event, payload)
         else:
             return
-
-    def handle_generic(self, event, payload, type):
-        path = self._settings.get(["path"])
-        sender = self._settings.get(["sender"])
-        recipient = self._settings.get(["recipient"])
-
-        filename = os.path.basename(payload["file"])
-
-        if type == 'done':
-            elapsed_time = octoprint.util.get_formatted_timedelta(datetime.timedelta(seconds=payload["time"]))
-            tags = {'filename': filename, 
-                    'elapsed_time': elapsed_time,
-                    'host': socket.gethostname(),
-                    'user': getpass.getuser()}
-            message = self._settings.get(["message_format", "body"]).format(**tags)
-        elif type == 'paused':
-            tags = {'filename': filename, 
-                    'host': socket.gethostname(),
-                    'user': getpass.getuser()}
-            message = self._settings.get(["paused_message_format", "body"]).format(**tags)
-
-        self.send_message(path, sender, message, recipient)
-
-        # report notification was sent
-        self._logger.info("Notification (%s) sent to %s." % (type, self._settings.get(['recipient'])))
-
-    def handle_paused(self, event, payload):
-        if not self._settings.get(['enabled_pause']):
-            return
-        self.handle_generic(event, payload, 'paused')
-
-    def handle_done(self, event, payload):
-        if not self._settings.get(['enabled_done']):
-            return
-        self.handle_generic(event, payload, 'done')
 
     ##~~ Softwareupdate hook
     def get_update_information(self):

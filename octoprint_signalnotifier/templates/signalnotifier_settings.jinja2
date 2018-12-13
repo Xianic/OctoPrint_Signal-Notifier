@@ -1,29 +1,25 @@
 <h3>{{ _('Signal Notifier Configuration') }}</h3>
 
 <form class="form-horizontal">
-	<div class="control-group">
-		<div class="controls" title="{{ _('You can toggle whether notifications are enabled while a print is in progress.') }}">
-			<label class="checkbox">
-				<input type="checkbox" data-bind="checked: settings.plugins.signalnotifier.enabled" /> {{ _('Enabled') }}
-			</label>
-		</div>
-	</div>
 
 	<div class="control-group">
 		<div class="controls" title="blah">
 			<label class="checkbox">
 				<input type="checkbox" data-bind="checked: settings.plugins.signalnotifier.enabled_done" /> {{ _('Done Notifications Enabled') }}
 			</label>
-		</div>
-	</div>
-
-	<div class="control-group">
-		<div class="controls" title="blah">
 			<label class="checkbox">
 				<input type="checkbox" data-bind="checked: settings.plugins.signalnotifier.enabled_pause" /> {{ _('Paused Notifications Enabled') }}
 			</label>
 		</div>
 	</div>
+
+<!-- 	<div class="control-group">
+		<div class="controls" title="blah">
+			<label class="checkbox">
+				<input type="checkbox" data-bind="checked: settings.plugins.signalnotifier.enabled_pause" /> {{ _('Paused Notifications Enabled') }}
+			</label>
+		</div>
+	</div> -->
 
 	<h4>{{ _('Signal Settings') }}</h4>
 
