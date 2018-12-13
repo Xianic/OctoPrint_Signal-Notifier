@@ -96,6 +96,7 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
         self.send_message(path, sender, message, recipient)
 
         # report notification was sent
+        # TODO: improve this message format (capitalize type and put at start of sentence?)
         self._logger.info("Notification (%s) sent to %s." % (type, self._settings.get(['recipient'])))
 
     def handle_paused(self, event, payload):
