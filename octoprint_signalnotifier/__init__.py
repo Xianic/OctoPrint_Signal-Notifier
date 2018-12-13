@@ -78,13 +78,14 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
     #~~ SettingsPlugin
     def get_settings_defaults(self):
         return dict(
+            # TODO: remove enabled (now we have individual settings)
             enabled=False,
             enabled_done=True,
             enabled_pause=True,
             path="/usr/local/bin/signal-cli",
             sender="",
             recipient="",
-            # TODO: refactor settings
+            # TODO: refactor the message settings
             message_format=dict(
                 body="OctoPrint@{host}: {filename}: Job complete after {elapsed_time}." 
             ),
@@ -152,7 +153,7 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
 
         # report notification was sent
         # TODO: mention type of message (e.g. done, paused)?
-        self._logger.info("Notification (%s) sent to %s" % (type, self._settings.get(['recipient'])))
+        self._logger.info("Notification (%s) sent to %s." % (type, self._settings.get(['recipient'])))
 
 
     def handle_paused(self, event, payload):
