@@ -82,17 +82,15 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
 
         filename = os.path.basename(payload["file"])
 
+        tags = {'filename': filename, 
+                'host': socket.gethostname(),
+                'user': getpass.getuser()}
+
         if type == 'done':
             elapsed_time = octoprint.util.get_formatted_timedelta(datetime.timedelta(seconds=payload["time"]))
-            tags = {'filename': filename, 
-                    'elapsed_time': elapsed_time,
-                    'host': socket.gethostname(),
-                    'user': getpass.getuser()}
+            tags['elapsed_time'] = elapsed_time
             message = self._settings.get(["message_format", "body"]).format(**tags)
         elif type == 'paused':
-            tags = {'filename': filename, 
-                    'host': socket.gethostname(),
-                    'user': getpass.getuser()}
             message = self._settings.get(["paused_message_format", "body"]).format(**tags)
 
         self.send_message(path, sender, message, recipient)
