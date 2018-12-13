@@ -127,9 +127,6 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
             return
 
     def handle_generic(self, event, payload, type):
-        if not self._settings.get(['enabled_done']):
-            return
-
         path = self._settings.get(["path"])
         sender = self._settings.get(["sender"])
         recipient = self._settings.get(["recipient"])
