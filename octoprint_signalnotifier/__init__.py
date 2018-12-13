@@ -149,9 +149,7 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
         self.send_message(path, sender, message, recipient)
 
         # report notification was sent
-        # TODO: mention type of message (e.g. done, paused)?
         self._logger.info("Notification (%s) sent to %s." % (type, self._settings.get(['recipient'])))
-
 
     def handle_paused(self, event, payload):
         if not self._settings.get(['enabled_pause']):
