@@ -110,7 +110,7 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
 
     #~~ EventPlugin
     def on_event(self, event, payload):
-        self._logger.info("TESTING: event is %s: %s" % (event, payload))
+        # self._logger.info("TESTING: event is %s: %s" % (event, payload))
 
         if not self._settings.get(['enabled']):
             return
