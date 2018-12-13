@@ -101,14 +101,12 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
         self._logger.info("Notification (%s) sent to %s." % (type, self._settings.get(['recipient'])))
 
     def handle_paused(self, event, payload):
-        if not self._settings.get(['enabled_pause']):
-            return
-        self.handle_generic(event, payload, 'paused')
+        if self._settings.get(['enabled_pause']):
+           self.handle_generic(event, payload, 'paused')
 
     def handle_done(self, event, payload):
-        if not self._settings.get(['enabled_done']):
-            return
-        self.handle_generic(event, payload, 'done')
+        if self._settings.get(['enabled_done']):
+            self.handle_generic(event, payload, 'done')
 
     #~~ SettingsPlugin
     def get_settings_defaults(self):
