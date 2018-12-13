@@ -27,6 +27,26 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
         out, _err = proc.communicate()
         return (proc.returncode, out.rstrip())
 
+    def send_message(self, path, sender, message, recipient)
+        # ./signal-cli -u +4915151111111 send -m "My first message from the CLI" +4915152222222
+        the_command = "%s -u %s send -m \"%s\" %s" % (path, sender, message, recipient)
+        self._logger.debug("Command plugin will run is: '%s'" % the_command)
+        try:
+            rc, osstdout = self.run_command(the_command)
+        # TODO: catch subprocess.CalledProcessError vs generic error?
+        except Exception as e:
+            # report problem sending message
+            self._logger.exception("Signal notification error: %s" % (str(e)))
+        else:
+            if rc != 0:
+                self._logger.error("Command exited with a non-zero exit code!")
+                self._logger.error("Command: '%s'" % the_command)
+                self._logger.error("Command output: '%s'" % osstdout)
+                return
+            # report notification was sent
+            # TODO: mention type of message (e.g. done, paused)?
+            self._logger.info("Notification sent to %s" % (self._settings.get(['recipient'])))
+
     #~~ SettingsPlugin
     def get_settings_defaults(self):
         return dict(
@@ -60,6 +80,9 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
         if not self._settings.get(['enabled']):
             return
 
+        if not configuration_ok:
+            return
+
         if event == "PrintDone":
             self.handle_done(event, payload)
         else if event == 'PrintPaused'
@@ -72,9 +95,8 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
             return
 
         # TODO: write this
-        pass
+        self._logger.error("handle_paused hasn't been written yet!!!")
 
-        
     def handle_done(self, event, payload)
         if not self._settings.get(['enabled_done']):
             return
@@ -92,20 +114,23 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
         recipient = self._settings.get(["recipient"])
         message = self._settings.get(["message_format", "body"]).format(**tags)
 
+        self.send_message(path, sender, message, recipient)
+
+    def configuration_ok()
         # check that path is a valid executable
         if not self.is_exe(path):
             self._logger.error("The path to signal-cli ('%s') doesn't point at an executable!" % path)
-            return
+            return False
 
         # check that sender is defined
         if sender.strip() == '':
             self._logger.error("The sender ('%s') seems empty!" % sender)
-            return      
+            return False
 
         # check that recipient is defined
         if recipient.strip() == '':
             self._logger.error("The recipient ('%s') seems empty!" % recipient)
-            return      
+            return False
 
         # check that sender is in list of valid senders?
         list_identities_cmd = "%s -u %s listIdentities" % (path, sender)
@@ -114,25 +139,8 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
             self._logger.error("The sender ('%s') is not registered!" % sender)
             self._logger.error("Command: '%s'" % list_identities_cmd)
             self._logger.error("Command output: '%s'" % osstdout)
-            return               
-
-        # ./signal-cli -u +4915151111111 send -m "My first message from the CLI" +4915152222222
-        the_command = "%s -u %s send -m \"%s\" %s" % (path, sender, message, recipient)
-        self._logger.debug("Command plugin will run is: '%s'" % the_command)
-        try:
-            rc, osstdout = self.run_command(the_command)
-        # TODO: catch subprocess.CalledProcessError vs generic error?
-        except Exception as e:
-            # report problem sending message
-            self._logger.exception("Signal notification error: %s" % (str(e)))
-        else:
-            if rc != 0:
-                self._logger.error("Command exited with a non-zero exit code!")
-                self._logger.error("Command: '%s'" % the_command)
-                self._logger.error("Command output: '%s'" % osstdout)
-                return
-            # report notification was sent
-            self._logger.info("Notification sent to %s" % (self._settings.get(['recipient'])))
+            return False              
+        return True
 
     ##~~ Softwareupdate hook
     def get_update_information(self):
