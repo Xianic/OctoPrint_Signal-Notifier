@@ -133,7 +133,7 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
                 # - release
                 #pip="https://github.com/aerickson/OctoPrint_Signal-Notifier/archive/{target_version}.zip"
                 # - master tarball
-                pip="https://github.com/xian/OctoPrint_Signal-Notifier/archive/{target}.zip"
+                pip="https://github.com/xianic/OctoPrint_Signal-Notifier/archive/{target}.zip"
             )
         )
 
