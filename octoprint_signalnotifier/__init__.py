@@ -15,14 +15,14 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
                                octoprint.plugin.AssetPlugin,
                                octoprint.plugin.TemplatePlugin):
 
-    ## Helpers    
+    ## Helpers
     def is_exe(self, fpath):
         if os.path.isfile(fpath) and os.access(fpath, os.X_OK):
             return True
         return False
 
     def run_command(self, cmd):
-        parsed_cmd = shlex.split(cmd)     
+        parsed_cmd = shlex.split(cmd)
         proc = subprocess.Popen(parsed_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         out, _err = proc.communicate()
         return (proc.returncode, out.rstrip())
@@ -72,7 +72,7 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
             self._logger.error("The sender ('%s') is not registered!" % sender)
             self._logger.error("Command: '%s'" % list_identities_cmd)
             self._logger.error("Command output: '%s'" % osstdout)
-            return False              
+            return False
         return True
 
     def handle_generic(self, event, payload, type):
@@ -82,7 +82,7 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
 
         filename = os.path.basename(payload["file"])
 
-        tags = {'filename': filename, 
+        tags = {'filename': filename,
                 'host': socket.gethostname(),
                 'user': getpass.getuser()}
 
@@ -119,17 +119,17 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
             recipient="",
             # TODO: refactor the message settings
             message_format=dict(
-                body="OctoPrint@{host}: {filename}: Job complete after {elapsed_time}." 
+                body="OctoPrint@{host}: {filename}: Job complete after {elapsed_time}."
             ),
             paused_message_format=dict(
-                body="OctoPrint@{host}: {filename}: Job paused!" 
+                body="OctoPrint@{host}: {filename}: Job paused!"
             )
         )
 
     def get_settings_restricted_paths(self):
         return dict(admin=[["path"], ["sender"], ["recipient"]],
                     user=[["message_format", "body"]],
-                    never=[])        
+                    never=[])
 
     def get_settings_version(self):
         return 1
@@ -166,15 +166,15 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
                 # version check: github repository
                 #type="github_release",
                 type="github_commit",
-                user="aerickson",
+                user="xianic",
                 repo="OctoPrint_Signal-Notifier",
-                branch="master",
+                branch="install-dev",
 
                 # update method: pip
                 # - release
                 #pip="https://github.com/aerickson/OctoPrint_Signal-Notifier/archive/{target_version}.zip"
                 # - master tarball
-                pip="https://github.com/aerickson/OctoPrint_Signal-Notifier/archive/{target}.zip"
+                pip="https://github.com/xianic/OctoPrint_Signal-Notifier/archive/{target}.zip"
             )
         )
 
