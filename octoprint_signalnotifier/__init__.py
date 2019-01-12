@@ -15,14 +15,14 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
                                octoprint.plugin.AssetPlugin,
                                octoprint.plugin.TemplatePlugin):
 
-    ## Helpers    
+    ## Helpers
     def is_exe(self, fpath):
         if os.path.isfile(fpath) and os.access(fpath, os.X_OK):
             return True
         return False
 
     def run_command(self, cmd):
-        parsed_cmd = shlex.split(cmd)     
+        parsed_cmd = shlex.split(cmd)
         proc = subprocess.Popen(parsed_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         out, _err = proc.communicate()
         return (proc.returncode, out.rstrip())
@@ -35,14 +35,14 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
             sender="",
             recipient="",
             message_format=dict(
-                body="OctoPrint@{host}: Job complete: {filename} done printing after {elapsed_time}." 
+                body="OctoPrint@{host}: Job complete: {filename} done printing after {elapsed_time}."
             )
         )
 
     def get_settings_restricted_paths(self):
         return dict(admin=[["path"], ["sender"], ["recipient"]],
                     user=[["message_format", "body"]],
-                    never=[])        
+                    never=[])
 
     def get_settings_version(self):
         return 1
@@ -55,15 +55,15 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
     def on_event(self, event, payload):
         if event != "PrintDone":
             return
-        
+
         if not self._settings.get(['enabled']):
             return
-        
+
         filename = os.path.basename(payload["file"])
 
         elapsed_time = octoprint.util.get_formatted_timedelta(datetime.timedelta(seconds=payload["time"]))
 
-        tags = {'filename': filename, 
+        tags = {'filename': filename,
                 'elapsed_time': elapsed_time,
                 'host': socket.gethostname(),
                 'user': getpass.getuser()}
@@ -80,12 +80,12 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
         # check that sender is defined
         if sender.strip() == '':
             self._logger.error("The sender ('%s') seems empty!" % sender)
-            return      
+            return
 
         # check that recipient is defined
         if recipient.strip() == '':
             self._logger.error("The recipient ('%s') seems empty!" % recipient)
-            return      
+            return
 
         # check that sender is in list of valid senders?
         list_identities_cmd = "%s -u %s listIdentities" % (path, sender)
@@ -94,7 +94,7 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
             self._logger.error("The sender ('%s') is not registered!" % sender)
             self._logger.error("Command: '%s'" % list_identities_cmd)
             self._logger.error("Command output: '%s'" % osstdout)
-            return               
+            return
 
         # ./signal-cli -u +4915151111111 send -m "My first message from the CLI" +4915152222222
         the_command = "%s -u %s send -m \"%s\" %s" % (path, sender, message, recipient)
@@ -125,15 +125,15 @@ class SignalNotifierPlugin(octoprint.plugin.EventHandlerPlugin,
                 # version check: github repository
                 #type="github_release",
                 type="github_commit",
-                user="aerickson",
+                user="xianic",
                 repo="OctoPrint_Signal-Notifier",
-                branch="master",
+                branch="install",
 
                 # update method: pip
                 # - release
                 #pip="https://github.com/aerickson/OctoPrint_Signal-Notifier/archive/{target_version}.zip"
                 # - master tarball
-                pip="https://github.com/aerickson/OctoPrint_Signal-Notifier/archive/{target}.zip"
+                pip="https://github.com/xian/OctoPrint_Signal-Notifier/archive/{target}.zip"
             )
         )
 
